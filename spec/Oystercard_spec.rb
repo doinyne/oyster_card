@@ -1,6 +1,9 @@
 require 'oystercard'
 
 describe Oystercard do
+  let (:card) { Oystercard.new }
+  let (:station) { double :station }
+
   it 'returns balance 0' do
     oystercard = Oystercard.new
     expect(oystercard.balance).to eq 0
@@ -31,33 +34,40 @@ describe Oystercard do
     #   end
     # end
 
-    describe 'touch_in' do
-      it 'it changes in use to true' do
-        oystercard = Oystercard.new
-        subject.top_up(10)
-        expect { subject.touch_in }.to change { subject.in_use }.from(false).to(true)
+    describe '#in journey' do
+      it 'is not in a journey' do
+        expect(subject).not_to be_in_journey
       end
+    end
+      
+ 
+    describe 'touch_in' do
+      # it 'it changes in use to true' do
+      #   oystercard = Oystercard.new
+      #   subject.top_up(10)
+      #   expect { subject.touch_in }.to change { subject.in_use }.from(false).to(true)
+      # end
       it 'doesn/t allow user to touch in when balance is less than 1 pound' do
         oystercard = Oystercard.new
         expect { subject.touch_in }.to raise_error 'Please top up'
       end
     end
 
-    describe 'touch_out' do
-      it 'it changes in use to false' do
-        oystercard = Oystercard.new
-        subject.top_up(10)
-        subject.touch_in
-        expect { subject.touch_out }.to change { subject.in_use }.from(true).to(false)
-      end
-    end
+    # describe 'touch_out' do
+    #   it 'it changes in use to false' do
+    #     oystercard = Oystercard.new
+    #     subject.top_up(10)
+    #     subject.touch_in
+    #     expect { subject.touch_out }.to change { subject.in_use }.from(true).to(false)
+    #   end
+    # end
 
-    describe 'in_journey?' do
-      it 'returns true if touched in' do
-        oystercard = Oystercard.new
-        subject.top_up(10)
-        subject.touch_in
-        expect(subject).to be_in_journey
-      end
-    end
+    # describe 'in_journey?' do
+    #   it 'returns true if touched in' do
+    #     oystercard = Oystercard.new
+    #     subject.top_up(10)
+    #     subject.touch_in
+    #     expect(subject).to be_in_journey
+    #   end
+    # end
 end
