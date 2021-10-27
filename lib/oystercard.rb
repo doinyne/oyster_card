@@ -14,12 +14,12 @@ class Oystercard
     @balance + amount > @limit ? fail('Max limit of #{default_limit} GBP reached') : @balance += amount
   end
 
-  def touch_in
+  def touch_in(station)
     if @balance < MINIMUM_AMOUNT
       fail "Please top up"
     else
       # @in_use = true
-      @entry_station 
+      @entry_station = station
     end
   end
 
