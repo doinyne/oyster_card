@@ -1,73 +1,69 @@
+
 require 'oystercard'
 
 describe Oystercard do
-  let (:card) { Oystercard.new }
-  let (:station) { double :station }
+  let(:card) { Oystercard.new }
+  let(:station) { double :station }
+  let(:journey) { {entry_station: station, exit_station: station} }
 
-  it 'returns balance 0' do
-    oystercard = Oystercard.new
-    expect(oystercard.balance).to eq 0
+  it 'has a balance of zero' do
+    expect(card.balance).to eq 0
   end
-    describe '#top_up' do
-      it 'increases balance by amount given' do
-        expect { subject.top_up(10) }.to change { subject.balance }.by(10)
-      end
-    end
-    it 'has a maximum limit of 90' do
-      oystercard = Oystercard.new
-      expect(oystercard.limit).to eq 90
-    end
 
-    it 'raises and error if balance + top_up amount is greater than limit' do
-      default_limit = Oystercard::DEFAULT_LIMIT
-      subject.top_up default_limit
-      expect { subject.top_up 1 }.to raise_error 'Max limit of #{default_limit} GBP reached'
+  it 'expects journeys list to be empty' do
+    expect(card.journeys).to be_empty
+  end
+
+  describe '#top_up' do
+    it { is_expected.to respond_to(:top_up).with(1).argument }
+
+    it 'will top up the balance by 5' do
+      expect { card.top_up 5 }.to change { card.balance }.by 5
     end
 
-    # commented out because its now managed by touch in
-    #
-    # describe 'deduct' do
-    #   it 'deducts money from oystercard' do
-    #     oystercard = Oystercard.new
-    #     subject.top_up(10)
-    #     expect { subject.deduct(5) }.to change { subject.balance }.by(-5)
-    #   end
-    # end
-
-    describe '#in journey' do
-      it 'is not in a journey' do
-        expect(subject).not_to be_in_journey
-      end
+    it 'throws an exception if new balance exceeds the limit' do
+      card.top_up(Oystercard::CARD_LIMIT)
+      expect { card.top_up 1 }.to raise_error "The limit is #{Oystercard::CARD_LIMIT}, can not add more money on your oystercard!"
     end
-      
- 
-    describe 'touch_in' do
-      # it 'it changes in use to true' do
-      #   oystercard = Oystercard.new
-      #   subject.top_up(10)
-      #   expect { subject.touch_in }.to change { subject.in_use }.from(false).to(true)
-      # end
-      it 'doesn/t allow user to touch in when balance is less than 1 pound' do
-        oystercard = Oystercard.new
-        expect { subject.touch_in }.to raise_error 'Please top up'
-      end
+  end
+
+  describe '#in_journey' do
+    it 'is initially not in a journey' do
+      expect(subject).not_to be_in_journey
+    end
+  end
+
+  describe '#touch in' do
+   it 'will raise an error if insufficient amount' do
+    expect { card.touch_in(station) }.to raise_error "Insufficient amount"
+   end
+
+   it 'saves entry station' do
+    card.top_up 5
+    card.touch_in(station)
+    expect(card.entry_station).to eq station
+   end
+  end
+
+  describe '#touch out' do
+     it 'deduct fare from balance' do
+      card.top_up 5
+      card.touch_in(station)
+      expect { card.touch_out(station) }.to change { card.balance }.by(-Oystercard::FARE)
+    end
+  
+    it 'changes recorded entry station to nil' do
+      card.top_up 5
+      card.touch_in(station)
+      card.touch_out(station)
+      expect(card.entry_station).to eq nil
     end
 
-    # describe 'touch_out' do
-    #   it 'it changes in use to false' do
-    #     oystercard = Oystercard.new
-    #     subject.top_up(10)
-    #     subject.touch_in
-    #     expect { subject.touch_out }.to change { subject.in_use }.from(true).to(false)
-    #   end
-    # end
-
-    # describe 'in_journey?' do
-    #   it 'returns true if touched in' do
-    #     oystercard = Oystercard.new
-    #     subject.top_up(10)
-    #     subject.touch_in
-    #     expect(subject).to be_in_journey
-    #   end
-    # end
+    it "creates one journey after touching in and out" do
+      card.top_up 5
+      card.touch_in(:station)
+      card.touch_out(:station)
+      expect(card.journeys).to include {journey}
+    end
+  end
 end
