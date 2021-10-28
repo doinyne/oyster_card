@@ -10,7 +10,7 @@ class Oystercard
 
   def initialize
     @balance = 0
-    @journeys = []
+    @journey = Journey.new
     @entry_station
   end
 
@@ -20,15 +20,21 @@ class Oystercard
   end
   
   def touch_in(station)
-    @balance -= FINE if Journey.in_journey
+    penalty() if !!@journey.current_entry_station
     fail "Insufficient amount" if balance < MINIMUM_BALANCE
-    Journey.entry_station(station)
+    @journey.entry_station(station)
   end
 
   def touch_out(station)
-    deduct(FARE)
-    Journey.exit_station(station)
-    Journey.save_journey
+   if !!!@journey.current_entry_station
+     penalty()
+   else
+    deduct()
+   end
+    @journey.exit_station(station)
+    @journey.save_journey
+    @journey.entry_station(nil)
+    @journey.exit_station(nil)
   end
 
   private
@@ -37,7 +43,14 @@ class Oystercard
     @balance + amount > CARD_LIMIT
   end
 
-  def deduct(fare)
+  def deduct
     @balance -= FARE
+  end
+
+  def penalty
+    @balance -= FINE 
+    puts "You have been fined"
+    @journey.entry_station(nil)
+    @journey.exit_station(nil)
   end
 end
